@@ -3,13 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Кликер (Только целые)</title>
+    <title>Кликер: Разделенный магазин</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+      :root {
+        --bg-color: var(--tg-theme-bg-color, #121212);
+        --text-color: var(--tg-theme-text-color, #ffffff);
+        --hint-color: var(--tg-theme-hint-color, #aaaaaa);
+        --btn-color: var(--tg-theme-button-color, #03a9f4);
+        --secondary-bg: var(--tg-theme-secondary-bg-color, #1e1e1e);
+      }
+
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background-color: var(--tg-theme-bg-color, #121212);
-        color: var(--tg-theme-text-color, #ffffff);
+        background-color: var(--bg-color);
+        color: var(--text-color);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -18,19 +26,20 @@
         margin: 0;
         padding: 16px;
       }
+
       h1 { margin: 0 0 10px 0; text-align: center; }
       
       .stats {
         text-align: center;
         font-size: 1.1rem;
         margin-bottom: 20px;
-        color: var(--tg-theme-hint-color, #aaaaaa);
+        color: var(--hint-color);
       }
 
       #score {
         font-size: 3.5rem;
         font-weight: bold;
-        color: var(--tg-theme-button-color, #03a9f4);
+        color: var(--btn-color);
         margin-bottom: 30px;
         word-break: break-all;
       }
@@ -48,25 +57,74 @@
         text-align: left;
       }
       button:active { transform: scale(0.96); }
-      button:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
+      button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+      /* Стили для вкладок */
+      .tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+        width: 100%;
+        max-width: 320px;
+      }
+
+      .tab-btn {
+        flex: 1;
+        padding: 10px 0;
+        background: var(--secondary-bg);
+        color: var(--hint-color);
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      .tab-btn.active {
+        background: var(--btn-color);
+        color: var(--bg-color);
+      }
+
+      /* Стили для карточек улучшений */
+      .shop-container {
+        width: 100%;
+        max-width: 320px;
+        display: none; /* Скрываем по умолчанию */
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .shop-container.active {
+        display: flex;
       }
 
       .shop-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 12px;
-        background: var(--tg-theme-secondary-bg-color, #1e1e1e);
-        padding: 8px 12px;
+        padding: 12px;
+        background: var(--secondary-bg);
         box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         border-radius: 8px;
       }
 
+      .item-info {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.3;
+      }
+
+      .item-name {
+        font-weight: 600;
+        color: var(--text-color);
+      }
+
+      .item-desc {
+        font-size: 0.85rem;
+        color: var(--hint-color);
+      }
+
       .price {
         font-weight: bold;
-        color: var(--tg-theme-button-color, #03a9f4);
+        color: var(--btn-color);
       }
     </style>
   </head>
@@ -81,18 +139,32 @@
 
     <button id="click-btn">КЛИК</button>
 
-    <div style="margin-top: 40px; width: 100%; max-width: 320px;">
-      <h3>Магазин улучшений</h3>
-      
-      <button class="shop-item" id="buy-power" onclick="buyUpgrade('power')">
-        <span>+1 к силе клика</span>
-        <span class="price" id="price-power">10</span>
-      </button>
+    <!-- Вкладки -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('click')">Клик</button>
+      <button class="tab-btn" onclick="switchTab('auto')">Автофарм</button>
+    </div>
 
-      <button class="shop-item" id="buy-auto" onclick="buyUpgrade('auto')">
-        <span>+1 авто-клик в секунду</span>
+    <!-- Магазин: Клик -->
+    <div id="shop-click" class="shop-container active">
+      <div class="shop-item" onclick="buyUpgrade('power')">
+        <div class="item-info">
+          <span class="item-name">+1 к силе клика</span>
+          <span class="item-desc">Увеличивает урон за нажатие</span>
+        </div>
+        <span class="price" id="price-power">10</span>
+      </div>
+    </div>
+
+    <!-- Магазин: Автофарм -->
+    <div id="shop-auto" class="shop-container">
+      <div class="shop-item" onclick="buyUpgrade('auto')">
+        <div class="item-info">
+          <span class="item-name">+1 авто-клик/сек</span>
+          <span class="item-desc">Пассивный доход без кликов</span>
+        </div>
         <span class="price" id="price-auto">50</span>
-      </button>
+      </div>
     </div>
 
     <script>
@@ -119,7 +191,6 @@
 
       // --- Функция сохранения ---
       function save() {
-        // Сохраняем только целые числа
         localStorage.setItem('clicker_score', Math.floor(score));
         localStorage.setItem('clicker_power', Math.floor(power));
         localStorage.setItem('clicker_auto', Math.floor(auto));
@@ -131,25 +202,47 @@
       }
 
       function updateUI() {
-        // Гарантируем целые числа на экране
         scoreEl.innerText = toInt(score);
         powerEl.innerText = toInt(power);
         autoEl.innerText = toInt(auto);
 
-        // Считаем цены
         const nextPowerPriceRaw = basePricePower * Math.pow(1.5, power);
         const nextAutoPriceRaw = basePriceAuto * Math.pow(1.5, auto);
 
-        // ВАЖНО: Округляем цены ДО того, как показываем их и проверяем покупку
         const displayPowerPrice = toInt(nextPowerPriceRaw);
         const displayAutoPrice = toInt(nextAutoPriceRaw);
 
         pricePowerEl.innerText = displayPowerPrice;
         priceAutoEl.innerText = displayAutoPrice;
 
-        // Блокируем кнопки, если не хватает денег
-        document.getElementById('buy-power').disabled = score < displayPowerPrice;
-        document.getElementById('buy-auto').disabled = score < displayAutoPrice;
+        // Блокировка кнопок
+        const itemPower = document.querySelector('#shop-click .shop-item');
+        const itemAuto = document.querySelector('#shop-auto .shop-item');
+        
+        itemPower.style.opacity = score >= displayPowerPrice ? '1' : '0.5';
+        itemPower.style.cursor = score >= displayPowerPrice ? 'pointer' : 'not-allowed';
+        itemPower.onclick = score >= displayPowerPrice ? () => buyUpgrade('power') : null;
+
+        itemAuto.style.opacity = score >= displayAutoPrice ? '1' : '0.5';
+        itemAuto.style.cursor = score >= displayAutoPrice ? 'pointer' : 'not-allowed';
+        itemAuto.onclick = score >= displayAutoPrice ? () => buyUpgrade('auto') : null;
+      }
+
+      // --- Переключение вкладок ---
+      function switchTab(tabName) {
+        // Убираем активный класс у кнопок
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        // Скрываем все контейнеры магазина
+        document.querySelectorAll('.shop-container').forEach(cont => cont.classList.remove('active'));
+
+        // Активируем нужную кнопку
+        if (tabName === 'click') {
+          document.querySelector('.tabs button:nth-child(1)').classList.add('active');
+          document.getElementById('shop-click').classList.add('active');
+        } else {
+          document.querySelector('.tabs button:nth-child(2)').classList.add('active');
+          document.getElementById('shop-auto').classList.add('active');
+        }
       }
 
       // --- Логика игры ---
@@ -157,11 +250,9 @@
         score += power;
         save();
         updateUI();
-        
         if (navigator.vibrate) navigator.vibrate(20);
       });
 
-      // Авто-клик каждую секунду
       setInterval(() => {
         if (auto > 0) {
           score += auto;
@@ -170,27 +261,22 @@
         }
       }, 1000);
 
-      // Покупка улучшений
       function buyUpgrade(type) {
-        // Перечитываем текущие значения из localStorage на всякий случай
         const currentPower = parseInt(localStorage.getItem('clicker_power') || '1', 10);
         const currentAuto = parseInt(localStorage.getItem('clicker_auto') || '0', 10);
 
         if (type === 'power') {
-          // Считаем цену и СРАЗУ округляем её до целого
           const cost = toInt(basePricePower * Math.pow(1.5, currentPower));
-          
           if (score >= cost) {
-            score -= cost; // Вычитаем целое число
+            score -= cost;
             power++;
             save();
             updateUI();
           }
         } else if (type === 'auto') {
           const cost = toInt(basePriceAuto * Math.pow(1.5, currentAuto));
-          
           if (score >= cost) {
-            score -= cost; // Вычитаем целое число
+            score -= cost;
             auto++;
             save();
             updateUI();
@@ -198,7 +284,6 @@
         }
       }
 
-      // Первый запуск
       updateUI();
     </script>
   </body>
