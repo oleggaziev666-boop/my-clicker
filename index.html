@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Мой кликер</title>
+    <!-- Подключаем SDK Telegram -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+        background-color: var(--tg-theme-bg-color, #fff);
+        color: var(--tg-theme-text-color, #000);
+        margin: 0;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      h1 { margin: 0 0 16px 0; font-size: 24px; }
+      .score {
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 24px;
+      }
+      #click-btn {
+        width: 180px;
+        height: 180px;
+        border-radius: 12px;
+        background: var(--tg-theme-button-color, #2481cc);
+        color: var(--tg-theme-button-text-color, #ffffff);
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.05s ease;
+      }
+      #click-btn:active { transform: scale(0.96); }
+    </style>
+  </head>
+  <body>
+    <h1>Кликер в Telegram</h1>
+    <div class="score" id="score">0</div>
+    <button id="click-btn">КЛИК</button>
+
+    <script>
+      // Инициализируем Telegram Web App
+      const tg = window.Telegram.WebApp;
+      tg.ready();
+
+      let score = 0;
+      const scoreEl = document.getElementById('score');
+      const btn = document.getElementById('click-btn');
+
+      btn.addEventListener('click', () => {
+        score += 1;
+        scoreEl.textContent = score;
+
+        // Лёгкая вибрация (если телефон поддерживает)
+        if (navigator.vibrate) {
+          navigator.vibrate(20);
+        }
+      });
+
+      // На случай, если захочешь позже отправлять данные в бота
+      // tg.sendData(JSON.stringify({ score }));
+    </script>
+  </body>
+</html>
