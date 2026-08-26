@@ -3,13 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Мой Кликер</title>
-    <!-- Подключаем SDK Telegram -->
+    <title>Кликер с улучшениями</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
       body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        background-color: var(--tg-theme-bg-color, #fff);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background-color: var(--tg-theme-bg-color, #f5f5f5);
         color: var(--tg-theme-text-color, #000);
         display: flex;
         flex-direction: column;
@@ -17,67 +16,175 @@
         justify-content: center;
         height: 100vh;
         margin: 0;
-        overflow: hidden; /* Чтобы не было скролла */
+        padding: 16px;
       }
-      h1 { margin-bottom: 20px; }
+      h1 { margin: 0 0 10px 0; text-align: center; }
+      
+      .stats {
+        text-align: center;
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        color: var(--tg-theme-hint-color, #666);
+      }
+
       #score {
         font-size: 3rem;
         font-weight: bold;
-        margin-bottom: 40px;
         color: var(--tg-theme-button-color, #2481cc);
+        margin-bottom: 30px;
       }
+
       button {
-        padding: 20px 40px;
-        font-size: 1.2rem;
-        background-color: var(--tg-theme-button-color, #2481cc);
-        color: var(--tg-theme-button-text-color, #fff);
+        cursor: pointer;
         border: none;
         border-radius: 12px;
-        cursor: pointer;
-        transition: transform 0.1s;
+        padding: 14px 24px;
+        font-size: 1rem;
+        transition: transform 0.1s, opacity 0.2s;
+        display: block;
+        width: 100%;
+        max-width: 300px;
+        text-align: left; /* чтобы цена была справа */
       }
-      button:active { transform: scale(0.95); }
+      button:active { transform: scale(0.96); }
+      button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      .shop-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        background: var(--tg-theme-secondary-bg-color, #fff);
+        padding: 8px 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+      }
+
+      .price {
+        font-weight: bold;
+        color: var(--tg-theme-button-color, #2481cc);
+      }
     </style>
   </head>
   <body>
     <h1>Кликер</h1>
+
+    <div class="stats">
+      Сила клика: <span id="power">1</span> | Авто: <span id="auto">0</span>/сек
+    </div>
+
     <div id="score">0</div>
-    <button id="click-btn">Клик!</button>
+
+    <button id="click-btn">КЛИК</button>
+
+    <div style="margin-top: 40px; width: 100%; max-width: 320px;">
+      <h3>Магазин улучшений</h3>
+      
+      <button class="shop-item" id="buy-power" onclick="buyUpgrade('power')">
+        <span>+1 к силе клика</span>
+        <span class="price" id="price-power">10</span>
+      </button>
+
+      <button class="shop-item" id="buy-auto" onclick="buyUpgrade('auto')">
+        <span>+1 авто-клик в секунду</span>
+        <span class="price" id="price-auto">50</span>
+      </button>
+    </div>
 
     <script>
-      // 1. Инициализация Telegram WebApp
       const tg = window.Telegram.WebApp;
       tg.ready();
-      
-      // Растягиваем приложение на весь экран (важно для UX)
       tg.expand();
 
-      // 2. Находим элементы
-      const scoreElement = document.getElementById('score');
+      // --- Переменные состояния ---
+      let score = parseInt(localStorage.getItem('clicker_score') || '0', 10);
+      let power = parseInt(localStorage.getItem('clicker_power') || '1', 10);
+      let auto = parseInt(localStorage.getItem('clicker_auto') || '0', 10);
+
+      // Цены улучшений (можно менять)
+      const basePricePower = 10;
+      const basePriceAuto = 50;
+
+      // --- Элементы DOM ---
+      const scoreEl = document.getElementById('score');
+      const powerEl = document.getElementById('power');
+      const autoEl = document.getElementById('auto');
       const clickBtn = document.getElementById('click-btn');
+      
+      const pricePowerEl = document.getElementById('price-power');
+      const priceAutoEl = document.getElementById('price-auto');
 
-      // 3. Загружаем счёт из localStorage
-      // Если там пусто, ставим 0. parseInt нужен, чтобы превратить строку в число.
-      let score = localStorage.getItem('clicker_score') || 0;
-      score = parseInt(score, 10);
-
-      // 4. Отображаем текущий счёт
-      scoreElement.innerText = score;
-
-      // 5. Функция клика
-      function incrementScore() {
-        score++;
-        scoreElement.innerText = score;
-        
-        // 6. Сохраняем в localStorage
+      // --- Функции сохранения ---
+      function save() {
         localStorage.setItem('clicker_score', score);
-        
-        // 7. (Опционально) Обновляем текст на главной кнопке Telegram (если настроена)
-        // tg.MainButton.setText(`Счёт: \${score}`); 
+        localStorage.setItem('clicker_power', power);
+        localStorage.setItem('clicker_auto', auto);
       }
 
-      // 8. Вешаем событие на кнопку
-      clickBtn.addEventListener('click', incrementScore);
+      function updateUI() {
+        scoreEl.innerText = score;
+        powerEl.innerText = power;
+        autoEl.innerText = auto;
+
+        // Считаем цены (они растут с каждым улучшением)
+        const nextPowerPrice = basePricePower * Math.pow(1.5, power); // растёт экспоненциально
+        const nextAutoPrice = basePriceAuto * Math.pow(1.5, auto);
+
+        pricePowerEl.innerText = Math.ceil(nextPowerPrice);
+        priceAutoEl.innerText = Math.ceil(nextAutoPrice);
+
+        // Блокируем кнопки, если не хватает денег
+        document.getElementById('buy-power').disabled = score < nextPowerPrice;
+        document.getElementById('buy-auto').disabled = score < nextAutoPrice;
+      }
+
+      // --- Логика игры ---
+      clickBtn.addEventListener('click', () => {
+        score += power;
+        save();
+        updateUI();
+        
+        // Лёгкая вибрация
+        if (navigator.vibrate) navigator.vibrate(20);
+      });
+
+      // Авто-клик каждую секунду
+      setInterval(() => {
+        if (auto > 0) {
+          score += auto;
+          save();
+          updateUI();
+        }
+      }, 1000);
+
+      // Покупка улучшений
+      function buyUpgrade(type) {
+        const currentPower = parseInt(localStorage.getItem('clicker_power') || '1', 10);
+        const currentAuto = parseInt(localStorage.getItem('clicker_auto') || '0', 10);
+
+        if (type === 'power') {
+          const cost = basePricePower * Math.pow(1.5, currentPower);
+          if (score >= cost) {
+            score -= cost;
+            power++;
+            save();
+            updateUI();
+          }
+        } else if (type === 'auto') {
+          const cost = basePriceAuto * Math.pow(1.5, currentAuto);
+          if (score >= cost) {
+            score -= cost;
+            auto++;
+            save();
+            updateUI();
+          }
+        }
+      }
+
+      // Первый запуск
+      updateUI();
     </script>
   </body>
 </html>
