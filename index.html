@@ -66,7 +66,6 @@
         max-width: 320px;
         text-align: center;
       }
-
       button:active { transform: scale(0.96); }
       button:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
 
@@ -81,7 +80,6 @@
         width: 100%;
         max-width: 320px;
       }
-
       .tab-btn {
         flex: 1;
         padding: 12px 0;
@@ -98,10 +96,10 @@
         box-shadow: 0 4px 12px rgba(3, 169, 244, 0.3);
       }
 
-      .shop-container {
+      .shop-container, .roulette-container {
         width: 100%; max-width: 320px; display: none; flex-direction: column; gap: 12px;
       }
-      .shop-container.active { display: flex; }
+      .shop-container.active, .roulette-container.active { display: flex; }
 
       .shop-item {
         display: flex; justify-content: space-between; align-items: center; padding: 14px;
@@ -119,7 +117,8 @@
       /* Рулетка */
       .wheel-container { width: 100%; max-width: 300px; margin: 0 auto; position: relative; }
       #wheel {
-        width: 100%; height: 300px; border-radius: 50%; background: conic-gradient(
+        width: 100%; height: 300px; border-radius: 50%;
+        background: conic-gradient(
           #ff5252 0% 20%, #ffcc00 20% 40%, #00e676 40% 60%, #6d4c41 60% 80%, #7e57c2 80% 100%
         );
         transform-origin: center; transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 1);
@@ -130,5 +129,214 @@
         width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent;
         border-top: 24px solid var(--btn-color); z-index: 10;
       }
-      .
+      .result-box {
+        margin-top: 16px; padding: 12px; background: var(--secondary-bg); border-radius: 8px;
+        text-align: center; display: none;
+      }
+      .result-text { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
+      .bet-input {
+        width: 100%; padding: 12px; margin-bottom: 16px; background: var(--secondary-bg);
+        border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--text-color);
+        text-align: center; outline: none; box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Кликер + Рулетка</h1>
+
+    <div class="stats">
+      Баланс: <span id="score">0</span> | Сила: <span id="power">1</span> | Авто: <span id="auto">0</span>/сек
+    </div>
+
+    <button id="click-btn" class="btn-main">КЛИК</button>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('shop')">Магазин</button>
+      <button class="tab-btn" onclick="switchTab('roulette')">Рулетка</button>
+    </div>
+
+    <!-- Магазин -->
+    <div id="shop-container" class="shop-container active">
+      <div class="shop-item" id="item-power" onclick="buyUpgrade('power')">
+        <div class="item-info">
+          <span class="item-name">+1 к силе клика</span>
+          <span class="item-desc">Больше монет за клик</span>
+        </div>
+        <span class="price" id="price-power">10</span>
+      </div>
+      <div class="shop-item" id="item-auto" onclick="buyUpgrade('auto')">
+        <div class="item-info">
+          <span class="item-name">Автоклик +1/сек</span>
+          <span class="item-desc">Пассивный доход</span>
+        </div>
+        <span class="price" id="price-auto">50</span>
+      </div>
+    </div>
+
+    <!-- Рулетка -->
+    <div id="roulette-container" class="roulette-container">
+      <p style="text-align:center; color:var(--hint-color);">Ставь монеты — крутани барабан</p>
+      <input type="number" id="bet-amount" class="bet-input" placeholder="Сумма ставки" min="1" max="999999">
+      <div class="wheel-container">
+        <div id="marker"></div>
+        <div id="wheel"></div>
+      </div>
+      <button id="spin-btn" class="btn-danger" onclick="spinWheel()">КРУТИТЬ</button>
+      <div id="result-box" class="result-box">
+        <div class="result-text">Результат</div>
+        <div id="result-detail" style="color:var(--hint-color)"></div>
+      </div>
+    </div>
+
+    <script>
+      const tg = window.Telegram?.WebApp;
+      if (tg) {
+        tg.ready();
+        tg.expand();
+      }
+
+      function getSafeInt(key, defaultValue) {
+        try {
+          const val = localStorage.getItem(key);
+          const num = parseInt(val, 10);
+          return isNaN(num) ? defaultValue : num;
+        } catch (e) {
+          return defaultValue;
+        }
+      }
+
+      let score = getSafeInt('clicker_score', 0);
+      let power = getSafeInt('clicker_power', 1);
+      let auto = getSafeInt('clicker_auto', 0);
+
+      const basePricePower = 10;
+      const basePriceAuto = 50;
+
+      const scoreEl = document.getElementById('score');
+      const powerEl = document.getElementById('power');
+      const autoEl = document.getElementById('auto');
+      const clickBtn = document.getElementById('click-btn');
+      const pricePowerEl = document.getElementById('price-power');
+      const priceAutoEl = document.getElementById('price-auto');
+      const itemPowerEl = document.getElementById('item-power');
+      const itemAutoEl = document.getElementById('item-auto');
+
+      function save() {
+        try {
+          localStorage.setItem('clicker_score', Math.floor(score));
+          localStorage.setItem('clicker_power', Math.floor(power));
+          localStorage.setItem('clicker_auto', Math.floor(auto));
+        } catch (e) {}
+      }
+
+      function toInt(num) {
+        return Math.max(0, Math.floor(num));
+      }
+
+      function updateUI() {
+        scoreEl.innerText = toInt(score);
+        powerEl.innerText = toInt(power);
+        autoEl.innerText = toInt(auto);
+
+        const nextPowerPriceRaw = basePricePower * Math.pow(1.5, power);
+        const nextAutoPriceRaw = basePriceAuto * Math.pow(1.5, auto);
+
+        const displayPowerPrice = toInt(nextPowerPriceRaw);
+        const displayAutoPrice = toInt(nextAutoPriceRaw);
+
+        pricePowerEl.innerText = displayPowerPrice;
+        priceAutoEl.innerText = displayAutoPrice;
+
+        const canBuyPower = score >= displayPowerPrice;
+        const canBuyAuto = score >= displayAutoPrice;
+
+        itemPowerEl.classList.toggle('disabled', !canBuyPower);
+        itemAutoEl.classList.toggle('disabled', !canBuyAuto);
+
+        itemPowerEl.onclick = canBuyPower ? () => buyUpgrade('power') : null;
+        itemAutoEl.onclick = canBuyAuto ? () => buyUpgrade('auto') : null;
+      }
+
+      function switchTab(tabName) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.shop-container, .roulette-container').forEach(cont => cont.classList.remove('active'));
+
+        if (tabName === 'shop') {
+          document.querySelector('.tabs button:nth-child(1)').classList.add('active');
+          document.getElementById('shop-container').classList.add('active');
+        } else {
+          document.querySelector('.tabs button:nth-child(2)').classList.add('active');
+          document.getElementById('roulette-container').classList.add('active');
+        }
+      }
+
+      if (clickBtn) {
+        clickBtn.addEventListener('click', () => {
+          const gain = power;
+          score += gain;
+          save();
+          updateUI();
+
+          if (navigator.vibrate) navigator.vibrate(20);
+        });
+      }
+
+      setInterval(() => {
+        if (auto > 0) {
+          score += auto;
+          save();
+          updateUI();
+        }
+      }, 1000);
+
+      function buyUpgrade(type) {
+        if (type === 'power') {
+          const cost = toInt(basePricePower * Math.pow(1.5, power));
+          if (score >= cost) {
+            score -= cost;
+            power++;
+            save();
+            updateUI();
+          }
+        } else if (type === 'auto') {
+          const cost = toInt(basePriceAuto * Math.pow(1.5, auto));
+          if (score >= cost) {
+            score -= cost;
+            auto++;
+            save();
+            updateUI();
+          }
+        }
+      }
+
+      // Рулетка
+      const spinBtn = document.getElementById('spin-btn');
+      const resultBox = document.getElementById('result-box');
+      const resultText = document.querySelector('#result-box .result-text');
+      const resultDetail = document.getElementById('result-detail');
+      const betInput = document.getElementById('bet-amount');
+      const wheel = document.getElementById('wheel');
+
+      function spinWheel() {
+        const bet = toInt(betInput.value);
+        if (bet < 1 || bet > score) {
+          alert('Неверная ставка: недостаточно монет или некорректное число');
+          return;
+        }
+
+        score -= bet;
+        save();
+        updateUI();
+
+        resultBox.style.display = 'none';
+
+        // Коэффициенты: 0x, 1x, 2x, 3x, 5x
+        const multipliers = [0, 1, 2, 3, 5];
+        const randomIndex = Math.floor(Math.random() * multipliers.length);
+        const multiplier = multipliers[randomIndex];
+
+        // Вращение: случайный угол (несколько оборотов + позиция сектора)
+        const sectors = 5;
+        const sectorAngle = 360 / sectors;
+        const baseAngle = randomIndex * sectorAngle;
       
