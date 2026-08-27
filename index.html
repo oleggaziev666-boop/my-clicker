@@ -27,6 +27,7 @@
         margin: 0;
         padding: 16px;
         overflow-x: hidden;
+        position: relative; /* нужно для позиционирования всплывающих цифр */
       }
 
       h1 { 
@@ -80,7 +81,7 @@
         filter: grayscale(1);
       }
 
-      /* Стили для вкладок */
+      /* Вкладки */
       .tabs {
         display: flex;
         gap: 8px;
@@ -106,11 +107,11 @@
         box-shadow: 0 4px 12px rgba(3, 169, 244, 0.3);
       }
 
-      /* Стили для карточек улучшений */
+      /* Карточки улучшений */
       .shop-container {
         width: 100%;
         max-width: 320px;
-        display: none; /* Скрываем по умолчанию */
+        display: none;
         flex-direction: column;
         gap: 12px;
       }
@@ -164,6 +165,19 @@
         min-width: 50px;
         text-align: right;
       }
+
+      /* --- Анимация всплывающих цифр --- */
+      .floating-number {
+        position: absolute;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--btn-color);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        pointer-events: none;
+        user-select: none;
+        opacity: 1;
+        will-change: transform, opacity;
+      }
     </style>
   </head>
   <body>
@@ -175,6 +189,7 @@
 
     <div id="score">0</div>
 
+    <!-- Кнопка клика -->
     <button id="click-btn">КЛИК</button>
 
     <!-- Вкладки -->
@@ -229,6 +244,53 @@
       const itemPowerEl = document.getElementById('item-power');
       const itemAutoEl = document.getElementById('item-auto');
 
+      // --- Комбо и анимация ---
+      let lastClickTime = 0;
+      let combo = 0;
+
+      function showFloatingNumber(value, x, y) {
+        const el = document.createElement('div');
+        el.className = 'floating-number';
+        el.innerText = '+' + value;
+
+        // Позиционируем рядом с кнопкой клика
+        const btnRect = clickBtn.getBoundingClientRect();
+        // Центрируем всплывающую надпись над кнопкой
+        const startX = btnRect.left + btnRect.width / 2 - 20; // -20 примерно половина ширины текста
+        const startY = btnRect.top - 40; // чуть выше кнопки
+
+        el.style.left = startX + 'px';
+        el.style.top = startY + 'px';
+        document.body.appendChild(el);
+
+        // Анимация: летим вверх и растворяемся
+        const duration = 800; // мс
+        const moveUp = 120;   // пикселей вверх
+        const opacityStart = 1;
+
+        const startTime = performance.now();
+
+        function animate(currentTime) {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const ease = 1 - Math.pow(1 - progress, 2); // простая ease-out кривая
+
+          const currentY = startY - moveUp * ease;
+          const currentOpacity = opacityStart * (1 - ease);
+
+          el.style.transform = `translateY(${currentY - startY}px)`;
+          el.style.opacity = currentOpacity;
+
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            el.remove();
+          }
+        }
+
+        requestAnimationFrame(animate);
+      }
+
       // --- Функция сохранения ---
       function save() {
         localStorage.setItem('clicker_score', Math.floor(score));
@@ -255,26 +317,21 @@
         pricePowerEl.innerText = displayPowerPrice;
         priceAutoEl.innerText = displayAutoPrice;
 
-        // Логика доступности кнопок
         const canBuyPower = score >= displayPowerPrice;
         const canBuyAuto = score >= displayAutoPrice;
 
         itemPowerEl.classList.toggle('disabled', !canBuyPower);
         itemAutoEl.classList.toggle('disabled', !canBuyAuto);
 
-        // Обновляем обработчики событий динамически
         itemPowerEl.onclick = canBuyPower ? () => buyUpgrade('power') : null;
         itemAutoEl.onclick = canBuyAuto ? () => buyUpgrade('auto') : null;
       }
 
       // --- Переключение вкладок ---
       function switchTab(tabName) {
-        // Убираем активный класс у кнопок
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        // Скрываем все контейнеры магазина
         document.querySelectorAll('.shop-container').forEach(cont => cont.classList.remove('active'));
 
-        // Активируем нужную кнопку и контейнер
         if (tabName === 'click') {
           document.querySelector('.tabs button:nth-child(1)').classList.add('active');
           document.getElementById('shop-click').classList.add('active');
@@ -286,9 +343,28 @@
 
       // --- Логика игры ---
       clickBtn.addEventListener('click', () => {
-        score += power;
+        const now = Date.now();
+        const timeSinceLast = now - lastClickTime;
+
+        if (timeSinceLast < 800) {
+          combo++;
+        } else {
+          combo = 1;
+        }
+
+        // Бонус за комбо: +10% за каждый уровень комбо (до х2)
+        const bonusMultiplier = Math.min(1 + (combo - 1) * 0.1, 2);
+        const gain = Math.floor(power * bonusMultiplier);
+
+        score += gain;
+        lastClickTime = now;
+
         save();
         updateUI();
+
+        // Показываем всплывающую цифру
+        showFloatingNumber(gain, 0, 0);
+
         if (navigator.vibrate) navigator.vibrate(20);
       });
 
@@ -301,7 +377,6 @@
       }, 1000);
 
       function buyUpgrade(type) {
-        // Берем актуальные значения из localStorage на момент покупки, чтобы избежать рассинхрона
         const currentPower = parseInt(localStorage.getItem('clicker_power') || '1', 10);
         const currentAuto = parseInt(localStorage.getItem('clicker_auto') || '0', 10);
 
@@ -327,4 +402,5 @@
       updateUI();
     </script>
   </body>
-</html>
+  </html>
+  
