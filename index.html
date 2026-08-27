@@ -3,167 +3,470 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Кликер: Разделенный магазин</title>
+    <title>Crypto Clicker UI</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
       :root {
-        --bg-color: var(--tg-theme-bg-color, #121212);
-        --text-color: var(--tg-theme-text-color, #ffffff);
-        --hint-color: var(--tg-theme-hint-color, #aaaaaa);
-        --btn-color: var(--tg-theme-button-color, #03a9f4);
-        --secondary-bg: var(--tg-theme-secondary-bg-color, #1e1e1e);
+        --bg-color: #0b0b15;
+        --card-bg: #1a1a2e;
+        --text-main: #ffffff;
+        --text-hint: #a0a0b0;
+        --accent-gold: #f5c518;
+        --btn-close: #ff4d4d;
       }
 
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         background-color: var(--bg-color);
-        color: var(--text-color);
+        color: var(--text-main);
+        margin: 0;
+        padding: 0;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
-        height: 100vh;
-        margin: 0;
-        padding: 16px;
+        min-height: 100vh;
       }
 
-      h1 { margin: 0 0 10px 0; text-align: center; }
-      
-      .stats {
-        text-align: center;
-        font-size: 1.1rem;
+      /* --- Header --- */
+      .header {
+        width: 100%;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-sizing: border-box;
         margin-bottom: 20px;
-        color: var(--hint-color);
       }
 
-      #score {
-        font-size: 3.5rem;
-        font-weight: bold;
-        color: var(--btn-color);
-        margin-bottom: 30px;
+      .close-btn {
+        background: none;
+        border: none;
+        color: var(--btn-close);
+        font-size: 1.2rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+      }
+
+      .balance-area {
+        text-align: center;
+        flex-grow: 1;
+      }
+
+      .balance-label {
+        font-size: 0.85rem;
+        color: var(--text-hint);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 4px;
+      }
+
+      .balance-value {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: var(--text-main);
         word-break: break-all;
       }
 
-      button {
-        cursor: pointer;
+      .coin-icon {
+        width: 24px;
+        height: 24px;
+        background: #ffd700;
+        border-radius: 50%;
+        display: inline-block;
+        margin-left: 6px;
+        position: relative;
+      }
+      .coin-icon::after {
+        content: 'B';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #000;
+        font-weight: 900;
+        font-size: 14px;
+      }
+
+      /* --- Grid Menu --- */
+      .grid-menu {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        width: 100%;
+        max-width: 340px;
+        padding: 0 16px;
+        margin-bottom: 30px;
+      }
+
+      .menu-btn {
+        background: var(--card-bg);
         border: none;
-        border-radius: 12px;
-        padding: 14px 24px;
-        font-size: 1rem;
-        transition: transform 0.1s, opacity 0.2s;
-        display: block;
-        width: 100%;
-        max-width: 300px;
-        text-align: left;
-      }
-      button:active { transform: scale(0.96); }
-      button:disabled { opacity: 0.4; cursor: not-allowed; }
-
-      /* Стили для вкладок */
-      .tabs {
+        border-radius: 16px;
+        padding: 18px 12px;
         display: flex;
+        flex-direction: column;
+        align-items: center;
         gap: 8px;
-        margin-bottom: 16px;
-        width: 100%;
-        max-width: 320px;
+        cursor: pointer;
+        color: var(--text-main);
+        transition: transform 0.1s, opacity 0.2s;
+      }
+      .menu-btn:active { transform: scale(0.96); }
+
+      .icon-placeholder {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+      }
+      .icon-gold { background: #f5c518; color: #000; }
+      .icon-green { background: #4ade80; color: #000; }
+      .icon-pink { background: #f472b6; color: #000; }
+      .icon-purple { background: #a855f7; color: #000; }
+      .icon-cyan { background: #38bdf8; color: #000; }
+      .icon-blue { background: #3b82f6; color: #000; }
+
+      .btn-label {
+        font-size: 0.85rem;
+        text-align: center;
+        line-height: 1.2;
       }
 
-      .tab-btn {
-        flex: 1;
+      /* --- Big Coin --- */
+      .big-coin {
+        width: 240px;
+        height: 240px;
+        background: radial-gradient(circle, #fff 0%, #f5c518 100%);
+        border-radius: 50%;
+        position: relative;
+        box-shadow: 0 0 20px rgba(245, 197, 24, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 40px;
+        overflow: hidden;
+      }
+      .big-coin::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-image: 
+          linear-gradient(rgba(0,0,0,0.15) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0,0,0,0.15) 1px, transparent 1px);
+        background-size: 20px 20px;
+        border-radius: 50%;
+        z-index: 1;
+      }
+      .big-coin-symbol {
+        font-size: 120px;
+        color: #d4a017;
+        font-weight: 900;
+        position: relative;
+        z-index: 2;
+        text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      }
+      .big-coin-border {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        border-radius: 50%;
+        border: 4px solid #d4a017;
+        padding: 12px;
+        box-sizing: border-box;
+        z-index: 3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .big-coin-border span {
+        font-size: 0.6rem;
+        font-family: monospace;
+        color: #bfa45c;
+        letter-spacing: 1px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: center;
+        max-width: 210px;
+        text-transform: uppercase;
+      }
+
+      /* --- Leaderboard --- */
+      .top-bar {
+        width: 100%;
+        max-width: 340px;
+        padding: 0 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .top-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .top-title .crown {
+        width: 18px;
+        height: 18px;
+        color: #f5c518;
+        font-weight: 900;
+      }
+      .top-badge {
+        background: #16233a;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        color: var(--text-hint);
+      }
+
+      .leaderboard {
+        width: 100%;
+        max-width: 340px;
+        padding: 0 16px;
+        height: 140px;
+        overflow-y: auto;
+        background: rgba(255,255,255,0.03);
+        border-radius: 16px;
+      }
+      .leader-row {
+        display: flex;
+        align-items: center;
         padding: 10px 0;
-        background: var(--secondary-bg);
-        color: var(--hint-color);
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 0.9rem;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+      }
+      .rank {
+        width: 28px;
+        font-weight: 700;
+        color: var(--accent-gold);
+        margin-right: 12px;
+      }
+      .user-info {
+        flex-grow: 1;
+      }
+      .user-name {
+        font-size: 0.95rem;
+        margin-bottom: 2px;
+      }
+      .user-score {
+        font-size: 0.8rem;
+        color: var(--text-hint);
       }
 
-      .tab-btn.active {
-        background: var(--btn-color);
-        color: var(--bg-color);
+      .leaderboard::-webkit-scrollbar {
+        width: 6px;
+      }
+      .leaderboard::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.1);
+        border-radius: 3px;
       }
 
-      /* Стили для карточек улучшений */
-      .shop-container {
+      /* --- SHOP MODAL (Магазин) --- */
+      .shop-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
         width: 100%;
-        max-width: 320px;
-        display: none; /* Скрываем по умолчанию */
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .shop-overlay.active {
+        display: flex;
+        opacity: 1;
+      }
+
+      .shop-card {
+        background: var(--card-bg);
+        width: 90%;
+        max-width: 340px;
+        border-radius: 24px;
+        padding: 20px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        transform: scale(0.9);
+        transition: transform 0.3s ease;
+        position: relative;
+      }
+      .shop-overlay.active .shop-card {
+        transform: scale(1);
+      }
+
+      .shop-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .shop-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--accent-gold);
+      }
+      .close-shop-btn {
+        background: none;
+        border: none;
+        color: var(--text-hint);
+        font-size: 1.2rem;
+        cursor: pointer;
+      }
+
+      .shop-list {
+        display: flex;
         flex-direction: column;
         gap: 12px;
       }
 
-      .shop-container.active {
-        display: flex;
-      }
-
-      .shop-item {
+      .upgrade-item {
+        background: rgba(255,255,255,0.05);
+        padding: 14px;
+        border-radius: 12px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px;
-        background: var(--secondary-bg);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        border-radius: 8px;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: all 0.2s;
       }
-
-      .item-info {
+      .upgrade-item:hover {
+        background: rgba(255,255,255,0.1);
+        border-color: var(--accent-gold);
+      }
+      .upgrade-item.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        border-color: rgba(255,255,255,0.1);
+      }
+      .upgrade-info {
         display: flex;
         flex-direction: column;
-        line-height: 1.3;
       }
-
-      .item-name {
+      .upgrade-name {
         font-weight: 600;
-        color: var(--text-color);
+        color: var(--text-main);
+      }
+      .upgrade-desc {
+        font-size: 0.8rem;
+        color: var(--text-hint);
+      }
+      .upgrade-price {
+        font-weight: 700;
+        color: var(--accent-gold);
       }
 
-      .item-desc {
+      .shop-stats {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255,255,255,0.1);
         font-size: 0.85rem;
-        color: var(--hint-color);
-      }
-
-      .price {
-        font-weight: bold;
-        color: var(--btn-color);
+        color: var(--text-hint);
+        text-align: center;
       }
     </style>
   </head>
   <body>
-    <h1>Кликер</h1>
-
-    <div class="stats">
-      Сила клика: <span id="power">1</span> | Авто: <span id="auto">0</span>/сек
-    </div>
-
-    <div id="score">0</div>
-
-    <button id="click-btn">КЛИК</button>
-
-    <!-- Вкладки -->
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('click')">Клик</button>
-      <button class="tab-btn" onclick="switchTab('auto')">Автофарм</button>
-    </div>
-
-    <!-- Магазин: Клик -->
-    <div id="shop-click" class="shop-container active">
-      <div class="shop-item" onclick="buyUpgrade('power')">
-        <div class="item-info">
-          <span class="item-name">+1 к силе клика</span>
-          <span class="item-desc">Увеличивает урон за нажатие</span>
+    <!-- Основной экран -->
+    <div class="header">
+      <button class="close-btn" onclick="closeApp()">✕ Закрыть</button>
+      <div class="balance-area">
+        <div class="balance-label">Ваш счёт</div>
+        <div class="balance-value">
+          <span id="balance-display">0</span>
+          <span class="coin-icon"></span>
         </div>
-        <span class="price" id="price-power">10</span>
       </div>
+      <div style="width: 24px;"></div>
     </div>
 
-    <!-- Магазин: Автофарм -->
-    <div id="shop-auto" class="shop-container">
-      <div class="shop-item" onclick="buyUpgrade('auto')">
-        <div class="item-info">
-          <span class="item-name">+1 авто-клик/сек</span>
-          <span class="item-desc">Пассивный доход без кликов</span>
+    <div class="grid-menu">
+      <button class="menu-btn" onclick="alert('Лидеры')">
+        <div class="icon-placeholder icon-gold">🏆</div>
+        <div class="btn-label">Лидеры</div>
+      </button>
+      <!-- Кнопка Маркет теперь открывает магазин -->
+      <button class="menu-btn" onclick="openShop()">
+        <div class="icon-placeholder icon-green">💼</div>
+        <div class="btn-label">Маркет</div>
+      </button>
+      <button class="menu-btn" onclick="alert('Игры')">
+        <div class="icon-placeholder icon-pink">🎮</div>
+        <div class="btn-label">Игры</div>
+      </button>
+      <button class="menu-btn" onclick="alert('Кошелёк')">
+        <div class="icon-placeholder icon-purple">💼</div>
+        <div class="btn-label">Кошелёк</div>
+      </button>
+      <button class="menu-btn" onclick="alert('Прочее')">
+        <div class="icon-placeholder icon-cyan">☰</div>
+        <div class="btn-label">Прочее</div>
+      </button>
+      <button class="menu-btn" onclick="alert('Друзья')">
+        <div class="icon-placeholder icon-blue">👥</div>
+        <div class="btn-label">Друзья</div>
+      </button>
+    </div>
+
+    <div class="big-coin">
+      <div class="big-coin-border">
+        <span>bytecoin + 011010001100</span>
+      </div>
+      <div class="big-coin-symbol">B</div>
+    </div>
+
+    <div class="top-bar">
+      <div class="top-title">
+        <span class="crown">👑</span>
+        <span>ТОП БОГАТЕЙШИХ</span>
+      </div>
+      <div class="top-badge">ТОП 7</div>
+    </div>
+
+    <div class="leaderboard" id="leaderboard-list">
+      <!-- Сюда JS будет добавлять строки -->
+    </div>
+
+    <!-- Магазин (Модальное окно) -->
+    <div class="shop-overlay" id="shop-overlay">
+      <div class="shop-card">
+        <div class="shop-header">
+          <div class="shop-title">Магазин</div>
+          <button class="close-shop-btn" onclick="closeShop()">✕</button>
         </div>
-        <span class="price" id="price-auto">50</span>
+
+        <div class="shop-list">
+          <div class="upgrade-item" id="upgrade-power" onclick="buyUpgrade('power')">
+            <div class="upgrade-info">
+              <div class="upgrade-name">Сила клика</div>
+              <div class="upgrade-desc">+1 к урону за нажатие</div>
+            </div>
+            <div class="upgrade-price" id="price-power">10</div>
+          </div>
+
+          <div class="upgrade-item" id="upgrade-auto" onclick="buyUpgrade('auto')">
+            <div class="upgrade-info">
+              <div class="upgrade-name">Автофарм</div>
+              <div class="upgrade-desc">+1 монета в секунду</div>
+            </div>
+            <div class="upgrade-price" id="price-auto">50</div>
+          </div>
+        </div>
+
+        <div class="shop-stats">
+          Текущая сила: <span id="stat-power">1</span> | Авто: <span id="stat-auto">0</span>/сек
+        </div>
       </div>
     </div>
 
@@ -173,118 +476,146 @@
       tg.expand();
 
       // --- Переменные состояния ---
-      let score = parseInt(localStorage.getItem('clicker_score') || '0', 10);
-      let power = parseInt(localStorage.getItem('clicker_power') || '1', 10);
-      let auto = parseInt(localStorage.getItem('clicker_auto') || '0', 10);
+      let balance = parseFloat(localStorage.getItem('crypto_balance') || '134.890976140');
+      let power = parseInt(localStorage.getItem('crypto_power') || '1', 10);
+      let auto = parseInt(localStorage.getItem('crypto_auto') || '0', 10);
 
       const basePricePower = 10;
       const basePriceAuto = 50;
 
       // --- Элементы DOM ---
-      const scoreEl = document.getElementById('score');
-      const powerEl = document.getElementById('power');
-      const autoEl = document.getElementById('auto');
-      const clickBtn = document.getElementById('click-btn');
+      const balanceEl = document.getElementById('balance-display');
+      const leaderboardContainer = document.getElementById('leaderboard-list');
       
+      const shopOverlay = document.getElementById('shop-overlay');
+      const statPowerEl = document.getElementById('stat-power');
+      const statAutoEl = document.getElementById('stat-auto');
       const pricePowerEl = document.getElementById('price-power');
       const priceAutoEl = document.getElementById('price-auto');
+      const upgradePowerEl = document.getElementById('upgrade-power');
+      const upgradeAutoEl = document.getElementById('upgrade-auto');
 
-      // --- Функция сохранения ---
-      function save() {
-        localStorage.setItem('clicker_score', Math.floor(score));
-        localStorage.setItem('clicker_power', Math.floor(power));
-        localStorage.setItem('clicker_auto', Math.floor(auto));
-      }
-
-      // --- Функция округления ---
-      function toInt(num) {
-        return Math.floor(num);
+      // --- Функции UI ---
+      function saveData() {
+        localStorage.setItem('crypto_balance', balance.toFixed(8));
+        localStorage.setItem('crypto_power', power);
+        localStorage.setItem('crypto_auto', auto);
       }
 
       function updateUI() {
-        scoreEl.innerText = toInt(score);
-        powerEl.innerText = toInt(power);
-        autoEl.innerText = toInt(auto);
+        // Баланс
+        balanceEl.innerText = balance.toFixed(8);
+        
+        // Статистика в магазине
+        statPowerEl.innerText = power;
+        statAutoEl.innerText = auto;
 
-        const nextPowerPriceRaw = basePricePower * Math.pow(1.5, power);
-        const nextAutoPriceRaw = basePriceAuto * Math.pow(1.5, auto);
+        // Цены и доступность апгрейдов
+        const nextPowerPrice = Math.floor(basePricePower * Math.pow(1.5, power));
+        const nextAutoPrice = Math.floor(basePriceAuto * Math.pow(1.5, auto));
 
-        const displayPowerPrice = toInt(nextPowerPriceRaw);
-        const displayAutoPrice = toInt(nextAutoPriceRaw);
-
-        pricePowerEl.innerText = displayPowerPrice;
-        priceAutoEl.innerText = displayAutoPrice;
+        pricePowerEl.innerText = nextPowerPrice;
+        priceAutoEl.innerText = nextAutoPrice;
 
         // Блокировка кнопок
-        const itemPower = document.querySelector('#shop-click .shop-item');
-        const itemAuto = document.querySelector('#shop-auto .shop-item');
-        
-        itemPower.style.opacity = score >= displayPowerPrice ? '1' : '0.5';
-        itemPower.style.cursor = score >= displayPowerPrice ? 'pointer' : 'not-allowed';
-        itemPower.onclick = score >= displayPowerPrice ? () => buyUpgrade('power') : null;
-
-        itemAuto.style.opacity = score >= displayAutoPrice ? '1' : '0.5';
-        itemAuto.style.cursor = score >= displayAutoPrice ? 'pointer' : 'not-allowed';
-        itemAuto.onclick = score >= displayAutoPrice ? () => buyUpgrade('auto') : null;
-      }
-
-      // --- Переключение вкладок ---
-      function switchTab(tabName) {
-        // Убираем активный класс у кнопок
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        // Скрываем все контейнеры магазина
-        document.querySelectorAll('.shop-container').forEach(cont => cont.classList.remove('active'));
-
-        // Активируем нужную кнопку
-        if (tabName === 'click') {
-          document.querySelector('.tabs button:nth-child(1)').classList.add('active');
-          document.getElementById('shop-click').classList.add('active');
+        if (balance >= nextPowerPrice) {
+          upgradePowerEl.classList.remove('disabled');
+          upgradePowerEl.style.cursor = 'pointer';
         } else {
-          document.querySelector('.tabs button:nth-child(2)').classList.add('active');
-          document.getElementById('shop-auto').classList.add('active');
+          upgradePowerEl.classList.add('disabled');
+          upgradePowerEl.style.cursor = 'not-allowed';
+        }
+
+        if (balance >= nextAutoPrice) {
+          upgradeAutoEl.classList.remove('disabled');
+          upgradeAutoEl.style.cursor = 'pointer';
+        } else {
+          upgradeAutoEl.classList.add('disabled');
+          upgradeAutoEl.style.cursor = 'not-allowed';
         }
       }
 
-      // --- Логика игры ---
-      clickBtn.addEventListener('click', () => {
-        score += power;
-        save();
-        updateUI();
-        if (navigator.vibrate) navigator.vibrate(20);
+      function renderLeaderboard() {
+        const data = [
+          { rank: 1, name: 'Alex_Crypto', score: '12,450.50' },
+          { rank: 2, name: 'MaxBit', score: '9,870.20' },
+          { rank: 3, name: 'Luna_Moon', score: '7,650.10' },
+          { rank: 4, name: 'NeoChain', score: '5,430.80' },
+          { rank: 5, name: 'SatoshiFan', score: '4,320.30' },
+          { rank: 6, name: 'CryptoKing', score: '3,210.90' },
+          { rank: 7, name: 'BlockDude', score: '2,100.40' }
+        ];
+
+        leaderboardContainer.innerHTML = data.map(user => `
+          <div class="leader-row">
+            <div class="rank">#\${user.rank}</div>
+            <div class="user-info">
+              <div class="user-name">\${user.name}</div>
+              <div class="user-score">\${user.score} BTC</div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // --- Логика Магазина ---
+      function openShop() {
+        updateUI(); // Обновляем цены перед открытием
+        shopOverlay.classList.add('active');
+      }
+
+      function closeShop() {
+        shopOverlay.classList.remove('active');
+      }
+
+      // Закрытие по клику вне карточки
+      shopOverlay.addEventListener('click', (e) => {
+        if (e.target === shopOverlay) closeShop();
       });
 
+      function buyUpgrade(type) {
+        let cost = 0;
+        if (type === 'power') {
+          cost = Math.floor(basePricePower * Math.pow(1.5, power));
+          if (balance >= cost) {
+            balance -= cost;
+            power++;
+            saveData();
+            updateUI();
+            // Визуальный эффект покупки (опционально)
+            upgradePowerEl.style.opacity = '0.5';
+            setTimeout(() => upgradePowerEl.style.opacity = '1', 200);
+          }
+        } else if (type === 'auto') {
+          cost = Math.floor(basePriceAuto * Math.pow(1.5, auto));
+          if (balance >= cost) {
+            balance -= cost;
+            auto++;
+            saveData();
+            updateUI();
+            upgradeAutoEl.style.opacity = '0.5';
+            setTimeout(() => upgradeAutoEl.style.opacity = '1', 200);
+          }
+        }
+      }
+
+      // --- Основная логика игры ---
+      function closeApp() {
+        tg.close();
+      }
+
+      // Автофарм (каждую секунду)
       setInterval(() => {
         if (auto > 0) {
-          score += auto;
-          save();
+          balance += auto;
+          saveData();
           updateUI();
         }
       }, 1000);
 
-      function buyUpgrade(type) {
-        const currentPower = parseInt(localStorage.getItem('clicker_power') || '1', 10);
-        const currentAuto = parseInt(localStorage.getItem('clicker_auto') || '0', 10);
-
-        if (type === 'power') {
-          const cost = toInt(basePricePower * Math.pow(1.5, currentPower));
-          if (score >= cost) {
-            score -= cost;
-            power++;
-            save();
-            updateUI();
-          }
-        } else if (type === 'auto') {
-          const cost = toInt(basePriceAuto * Math.pow(1.5, currentAuto));
-          if (score >= cost) {
-            score -= cost;
-            auto++;
-            save();
-            updateUI();
-          }
-        }
-      }
-
+      // Инициализация
       updateUI();
+      renderLeaderboard();
     </script>
   </body>
-</html>
+  </html>
+  
