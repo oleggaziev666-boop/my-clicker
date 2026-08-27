@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Кликер: Маркет</title>
+    <title>Crypto Clicker</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
       :root {
@@ -48,17 +48,38 @@
         text-shadow: 0 0 10px rgba(3, 169, 244, 0.4);
       }
 
-      button {
-        cursor: pointer; border: none; border-radius: var(--border-radius);
-        padding: 16px 24px; font-size: 1.1rem; font-weight: 600;
-        transition: transform 0.05s, box-shadow 0.2s, background-color 0.2s;
-        display: block; width: 100%; max-width: 320px; text-align: center;
+      /* --- МОНЕТА (Вместо кнопки) --- */
+      #coin-btn {
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        transition: transform 0.05s, box-shadow 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle, #e0e0e0 0%, #b0b0b0 100%);
+        border: 4px solid #fff;
       }
-      button:active { transform: scale(0.96); }
-      button:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
 
-      .btn-main { background: var(--btn-color); color: var(--bg-color); }
-      
+      /* Эффект нажатия (сжатие) */
+      #coin-btn:active {
+        transform: scale(0.92);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      }
+
+      /* Стилизация картинки монеты (если вдруг картинка не загрузится) */
+      #coin-btn img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+      }
+
       /* --- Навигация (Нижняя панель) --- */
       .bottom-nav {
         position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
@@ -94,7 +115,7 @@
 
       /* --- Анимация всплывающих чисел --- */
       .floating-number {
-        position: absolute; font-size: 1.4rem; font-weight: 700; color: var(--btn-color);
+        position: absolute; font-size: 1.8rem; font-weight: 700; color: var(--btn-color);
         text-shadow: 0 2px 4px rgba(0,0,0,0.3); pointer-events: none; user-select: none;
         will-change: transform, opacity; z-index: 10;
       }
@@ -104,12 +125,20 @@
 
     <!-- ЭКРАН ИГРЫ -->
     <div id="main-screen">
-      <h1>Кликер</h1>
+      <h1>Crypto Clicker</h1>
       <div class="stats">
         Сила клика: <span id="power">1</span> | Авто: <span id="auto">0</span>/сек
       </div>
       <div id="score">0</div>
-      <button id="click-btn" class="btn-main">КЛИК</button>
+      
+      <!-- КНОПКА-МОНЕТА -->
+      <div id="coin-btn" onclick="handleClick()">
+        <!-- Сюда можно вставить свою картинку, если есть файл -->
+        <!-- <img src="white-coin.png" alt="Coin"> -->
+        
+        <!-- Если картинки нет, здесь будет просто стилизованная монета с буквой W -->
+        <div style="font-size: 100px; font-weight: 900; color: #333; line-height: 1; text-shadow: 0 2px 4px rgba(255,255,255,0.3);">W</div>
+      </div>
       
       <!-- Нижняя панель навигации -->
       <div class="bottom-nav">
@@ -125,7 +154,6 @@
         Ваш баланс: <span id="shop-score">0</span>
       </div>
       <div class="shop-grid">
-        <!-- Товар 1: Сила клика -->
         <div class="shop-item" id="item-power" onclick="buyUpgrade('power')">
           <div class="item-info">
             <span class="item-name">+1 к силе клика</span>
@@ -133,18 +161,14 @@
           </div>
           <span class="price" id="price-power">10</span>
         </div>
-
-        <!-- Товар 2: Автоклик -->
         <div class="shop-item" id="item-auto" onclick="buyUpgrade('auto')">
           <div class="item-info">
-            <span class="item-name">+1 авто-клик/сек</span>
-            <span class="item-desc">Пассивный доход без участия</span>
+          <span class="item-name">+1 авто-клик/сек</span>
+          <span class="item-desc">Пассивный доход без участия</span>
           </div>
           <span class="price" id="price-auto">50</span>
         </div>
       </div>
-
-      <!-- Кнопка назад -->
       <button class="nav-btn" style="margin-top: 20px; background: var(--secondary-bg);" onclick="switchScreen('game')">Назад в игру</button>
     </div>
 
@@ -179,20 +203,21 @@
       const shopScoreEl = document.getElementById('shop-score');
       const powerEl = document.getElementById('power');
       const autoEl = document.getElementById('auto');
-      const clickBtn = document.getElementById('click-btn');
+      const coinBtn = document.getElementById('coin-btn');
       const pricePowerEl = document.getElementById('price-power');
       const priceAutoEl = document.getElementById('price-auto');
       const itemPowerEl = document.getElementById('item-power');
       const itemAutoEl = document.getElementById('item-auto');
 
-      // --- Логика анимации чисел ---
+      // --- Логика анимации чисел (теперь привязана к монете) ---
       function showFloatingNumber(value) {
-        if (!clickBtn) return;
+        if (!coinBtn) return;
         const el = document.createElement('div');
         el.className = 'floating-number';
         el.innerText = '+' + value;
 
-        const btnRect = clickBtn.getBoundingClientRect();
+        const btnRect = coinBtn.getBoundingClientRect();
+        // Центрируем всплывающее число над монетой
         const startX = btnRect.left + btnRect.width / 2 - 20;
         const startY = btnRect.top - 40;
 
@@ -201,7 +226,7 @@
         document.body.appendChild(el);
 
         const duration = 800;
-        const moveUp = 120;
+        const moveUp = 140;
         const startTime = performance.now();
 
         function animate(currentTime) {
@@ -224,6 +249,16 @@
         requestAnimationFrame(animate);
       }
 
+      // --- Обработчик клика по монете ---
+      function handleClick() {
+        const gain = power;
+        score += gain;
+        save();
+        updateUI();
+        showFloatingNumber(gain);
+        if (navigator.vibrate) navigator.vibrate(20);
+      }
+
       // --- Сохранение ---
       function save() {
         try {
@@ -240,7 +275,7 @@
       // --- Обновление интерфейса ---
       function updateUI() {
         scoreEl.innerText = toInt(score);
-        shopScoreEl.innerText = toInt(score); // Обновляем баланс и в магазине
+        shopScoreEl.innerText = toInt(score);
         powerEl.innerText = toInt(power);
         autoEl.innerText = toInt(auto);
 
@@ -263,7 +298,7 @@
         itemAutoEl.onclick = canBuyAuto ? () => buyUpgrade('auto') : null;
       }
 
-      // --- Переключение экранов (Игра / Маркет) ---
+      // --- Переключение экранов ---
       function switchScreen(screenName) {
         const mainScreen = document.getElementById('main-screen');
         const shopScreen = document.getElementById('shop-screen');
@@ -280,18 +315,6 @@
           navBtns.classList.remove('active');
           navBtns.classList.add('active');
         }
-      }
-
-      // --- Обработчики событий ---
-      if (clickBtn) {
-        clickBtn.addEventListener('click', () => {
-          const gain = power;
-          score += gain;
-          save();
-          updateUI();
-          showFloatingNumber(gain);
-          if (navigator.vibrate) navigator.vibrate(20);
-        });
       }
 
       // Автофарм
