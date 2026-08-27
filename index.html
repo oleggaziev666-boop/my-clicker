@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Crypto Clicker</title>
+    <title>White Coin</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
       :root {
@@ -43,9 +43,8 @@
       }
 
       #score {
-        font-size: 3.8rem; font-weight: 800; color: var(--btn-color);
+        font-size: 3.8rem; font-weight: 800; color: #ffffff;
         margin-bottom: 32px; word-break: break-all;
-        text-shadow: 0 0 10px rgba(3, 169, 244, 0.4);
       }
 
       /* --- МОНЕТА (Вместо кнопки) --- */
@@ -115,7 +114,7 @@
 
       /* --- Анимация всплывающих чисел --- */
       .floating-number {
-        position: absolute; font-size: 1.8rem; font-weight: 700; color: var(--btn-color);
+        position: absolute; font-size: 1.8rem; font-weight: 700; color: #ffffff;
         text-shadow: 0 2px 4px rgba(0,0,0,0.3); pointer-events: none; user-select: none;
         will-change: transform, opacity; z-index: 10;
       }
@@ -125,7 +124,7 @@
 
     <!-- ЭКРАН ИГРЫ -->
     <div id="main-screen">
-      <h1>Crypto Clicker</h1>
+      <h1>White Coin</h1>
       <div class="stats">
         Сила клика: <span id="power">1</span> | Авто: <span id="auto">0</span>/сек
       </div>
@@ -307,13 +306,15 @@
         if (screenName === 'game') {
           mainScreen.style.display = 'flex';
           shopScreen.style.display = 'none';
-          navBtns.classList.add('active');
-          navBtns.classList.remove('active');
+          navBtns.forEach((btn, index) => {
+            btn.classList.toggle('active', index === 0);
+          });
         } else {
           mainScreen.style.display = 'none';
           shopScreen.style.display = 'flex';
-          navBtns.classList.remove('active');
-          navBtns.classList.add('active');
+          navBtns.forEach((btn, index) => {
+            btn.classList.toggle('active', index === 1);
+          });
         }
       }
 
