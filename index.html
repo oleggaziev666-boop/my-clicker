@@ -15,6 +15,7 @@
         --border-radius: 12px;
         --danger-color: #ff4d4d;
         --success-color: #4caf50;
+        --mine-color: #555555;
       }
 
       body {
@@ -31,54 +32,36 @@
         position: relative;
       }
 
-      .screen {
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-        height: 100%;
-        padding-bottom: 80px;
-        box-sizing: border-box;
-      }
-      .screen.active {
-        display: flex;
-      }
+      /* --- Общие классы экранов --- */
+      .screen { display: none; flex-direction: column; align-items: center; width: 100%; height: 100%; padding-bottom: 80px; box-sizing: border-box; }
+      .screen.active { display: flex; }
 
       h1 { margin: 0 0 10px 0; text-align: center; font-weight: 600; }
+      h2 { margin: 10px 0; font-weight: 600; }
+      
       .stats {
-        text-align: center;
-        font-size: 1rem;
-        margin-bottom: 24px;
-        color: var(--hint-color);
-        background: var(--secondary-bg);
-        padding: 12px;
-        border-radius: var(--border-radius);
-        width: 100%;
-        max-width: 320px;
+        text-align: center; font-size: 1rem; margin-bottom: 24px; color: var(--hint-color);
+        background: var(--secondary-bg); padding: 12px; border-radius: var(--border-radius);
+        width: 100%; max-width: 320px;
       }
+
       #score {
-        font-size: 3.8rem;
-        font-weight: 800;
-        color: var(--btn-color);
-        margin-bottom: 32px;
-        word-break: break-all;
+        font-size: 3.8rem; font-weight: 800; color: var(--btn-color);
+        margin-bottom: 32px; word-break: break-all;
         text-shadow: 0 0 10px rgba(3, 169, 244, 0.4);
       }
 
+      /* --- МОНЕТА (Кликер) --- */
       #coin-btn {
         width: 220px; height: 220px; border-radius: 50%; cursor: pointer;
         position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        transition: transform 0.05s, box-shadow 0.2s;
-        display: flex; align-items: center; justify-content: center;
-        background: radial-gradient(circle, #e0e0e0 0%, #b0b0b0 100%);
-        border: 4px solid #fff;
+        transition: transform 0.05s, box-shadow 0.2s; display: flex; align-items: center; justify-content: center;
+        background: radial-gradient(circle, #e0e0e0 0%, #b0b0b0 100%); border: 4px solid #fff;
       }
       #coin-btn:active { transform: scale(0.92); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-      #coin-btn div {
-        font-size: 100px; font-weight: 900; color: #333;
-        line-height: 1; text-shadow: 0 2px 4px rgba(255,255,255,0.3);
-      }
+      #coin-btn div { font-size: 100px; font-weight: 900; color: #333; line-height: 1; text-shadow: 0 2px 4px rgba(255,255,255,0.3); }
 
+      /* --- Навигация (Нижняя панель) --- */
       .bottom-nav {
         position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
         width: 100%; max-width: 320px; display: flex; gap: 12px; z-index: 100;
@@ -91,12 +74,9 @@
       .nav-btn.active { background: var(--btn-color); color: var(--bg-color); box-shadow: 0 4px 12px rgba(3, 169, 244, 0.3); }
       .nav-btn.mines-btn { background: var(--danger-color); color: white; }
 
+      /* --- МАГАЗИН --- */
       .shop-grid { width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
-      .shop-item {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 14px; background: var(--secondary-bg); box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        border-radius: 8px; cursor: pointer; transition: all 0.2s;
-      }
+      .shop-item { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: var(--secondary-bg); box-shadow: 0 2px 8px rgba(0,0,0,0.2); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
       .shop-item:active { transform: scale(0.98); background: #2a2a35; }
       .shop-item.disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
       .item-info { display: flex; flex-direction: column; line-height: 1.3; }
@@ -104,34 +84,36 @@
       .item-desc { font-size: 0.85rem; color: var(--hint-color); }
       .price { font-weight: 800; color: var(--btn-color); min-width: 50px; text-align: right; }
 
-      /* Mines */
+      /* --- РЕЖИМ МИН (САПЁР) --- */
       .mines-panel {
         width: 100%; max-width: 320px; background: var(--secondary-bg);
         border-radius: var(--border-radius); padding: 20px; text-align: center; margin-top: 20px;
       }
       .mines-grid {
-        display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 20px 0; width: 100%;
+        display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 20px 0;
+        width: 100%;
       }
       .mine-cell {
         aspect-ratio: 1; background: #333; border-radius: 8px; cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        font-weight: bold; color: white; transition: all 0.1s;
-        position: relative; overflow: hidden;
+        display: flex; align-items: center; justify-content: center; font-weight: bold; color: white;
+        transition: all 0.1s; position: relative; overflow: hidden;
       }
       .mine-cell:active { transform: scale(0.95); }
       .mine-cell.revealed { background: #444; color: #ccc; cursor: default; }
       .mine-cell.mine { background: var(--danger-color); }
       .mine-cell.safe { background: var(--success-color); color: #000; }
-
+      
       .control-group { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
       .control-label { font-size: 0.9rem; color: var(--hint-color); }
+      
       .bet-input {
         width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid #444;
-        border-radius: 8px; color: white; font-size: 1rem; text-align: center; box-sizing: border-box;
+        border-radius: 8px; color: white; font-size: 1rem; text-align: center;
+        box-sizing: border-box;
       }
       .mines-slider-container { display: flex; align-items: center; gap: 10px; }
       .mines-slider { flex: 1; cursor: pointer; }
-
+      
       .action-btn {
         width: 100%; padding: 14px; border: none; border-radius: 8px;
         font-weight: 700; font-size: 1rem; cursor: pointer; transition: transform 0.1s;
@@ -140,6 +122,7 @@
       .btn-back { background: var(--secondary-bg); color: var(--text-color); margin-top: 10px; }
       .btn-back:active { transform: scale(0.98); }
 
+      /* --- Анимации --- */
       .floating-number {
         position: absolute; font-size: 1.8rem; font-weight: 700; color: var(--btn-color);
         text-shadow: 0 2px 4px rgba(0,0,0,0.3); pointer-events: none; user-select: none;
@@ -163,12 +146,13 @@
   </head>
   <body>
 
-    <!-- Main Game -->
+    <!-- ЭКРАН ИГРЫ -->
     <div id="main-screen" class="screen active">
       <h1>Crypto Clicker</h1>
       <div class="stats">Сила клика: <span id="power">1</span> | Авто: <span id="auto">0</span>/сек</div>
       <div id="score">0</div>
       <div id="coin-btn" onclick="handleClick()"><div>W</div></div>
+      
       <div class="bottom-nav">
         <button class="nav-btn active" onclick="switchScreen('game')">Главная</button>
         <button class="nav-btn" onclick="switchScreen('shop')">Маркет</button>
@@ -176,7 +160,7 @@
       </div>
     </div>
 
-    <!-- Shop -->
+    <!-- ЭКРАН МАГАЗИНА -->
     <div id="shop-screen" class="screen">
       <h1 style="margin-top: 40px;">Маркет</h1>
       <div class="stats">Ваш баланс: <span id="shop-score">0</span></div>
@@ -193,16 +177,19 @@
       <button class="nav-btn btn-back" onclick="switchScreen('game')">Назад в игру</button>
     </div>
 
-    <!-- Mines -->
+    <!-- ЭКРАН МИН (САПЁР) -->
     <div id="mines-screen" class="screen">
       <h1>Протокол обезвреживания</h1>
       <div class="stats">Текущий баланс: <span id="mines-score">0</span></div>
+      
       <div class="mines-panel">
         <p style="color: var(--hint-color); font-size: 0.9rem;">Рискните частью монет. Найдите безопасные ячейки, избегая угроз.</p>
+        
         <div class="control-group">
           <label class="control-label">Ставка (монеты)</label>
           <input type="number" id="mines-bet" class="bet-input" value="10" min="1" oninput="validateBet()">
         </div>
+
         <div class="control-group">
           <div class="mines-slider-container">
             <span class="control-label">Мин: <span id="mines-count-display">5</span></span>
@@ -210,10 +197,14 @@
           </div>
           <p style="font-size: 0.8rem; color: var(--hint-color); margin: 0;">Чем больше мин, тем выше риск и награда за ячейку.</p>
         </div>
+
         <button class="action-btn btn-start" onclick="startMinesGame()">Начать обезвреживание</button>
+        
         <div class="mines-grid" id="mines-grid"></div>
+        
         <div id="mines-status" style="margin-top: 15px; font-weight: bold;"></div>
       </div>
+
       <button class="nav-btn btn-back" onclick="switchScreen('game')">Назад в игру</button>
     </div>
 
@@ -221,6 +212,7 @@
       const tg = window.Telegram?.WebApp;
       if (tg) { tg.ready(); tg.expand(); }
 
+      // --- Инициализация данных ---
       function getSafeInt(key, defaultValue) {
         try {
           const val = localStorage.getItem(key);
@@ -236,6 +228,7 @@
       const basePricePower = 10;
       const basePriceAuto = 50;
 
+      // --- Элементы ---
       const scoreEl = document.getElementById('score');
       const shopScoreEl = document.getElementById('shop-score');
       const minesScoreEl = document.getElementById('mines-score');
@@ -247,20 +240,229 @@
       const itemPowerEl = document.getElementById('item-power');
       const itemAutoEl = document.getElementById('item-auto');
 
+      // Элементы мин
       const minesGrid = document.getElementById('mines-grid');
       const minesBetInput = document.getElementById('mines-bet');
       const minesSlider = document.getElementById('mines-slider');
       const minesCountDisplay = document.getElementById('mines-count-display');
       const minesStatus = document.getElementById('mines-status');
 
+      // --- Переменные игры мин ---
       let isMinesActive = false;
-      let minesBoard = [];
+      let minesBoard = []; // Массив 25 ячеек: true = мина, false = пусто
       let revealedCells = 0;
       let totalMines = 5;
       let currentBet = 10;
-      let cellsPerWin = 0;
+      let cellsPerWin = 0; // Награда за одну ячейку
 
+      // --- Логика анимации ---
       function showFloatingNumber(value, xOffset = 0) {
         if (!coinBtn) return;
         const el = document.createElement('div');
-      
+        el.className = 'floating-number';
+        el.innerText = '+' + value;
+        const btnRect = coinBtn.getBoundingClientRect();
+        el.style.left = (btnRect.left + btnRect.width / 2 - 20 + xOffset) + 'px';
+        el.style.top = (btnRect.top - 40) + 'px';
+        document.body.appendChild(el);
+        const duration = 800, moveUp = 140, startTime = performance.now();
+        function animate(currentTime) {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const ease = 1 - Math.pow(1 - progress, 2);
+          el.style.transform = `translateY(\${ -moveUp * ease}px)`;
+          el.style.opacity = 1 - ease;
+          if (progress < 1) requestAnimationFrame(animate);
+          else el.remove();
+        }
+        requestAnimationFrame(animate);
+      }
+
+      // --- Основные функции кликера ---
+      function handleClick() {
+        const gain = power;
+        score += gain;
+        save();
+        updateUI();
+        showFloatingNumber(gain);
+        if (navigator.vibrate) navigator.vibrate(20);
+      }
+
+      function save() {
+        try {
+          localStorage.setItem('clicker_score', Math.floor(score));
+          localStorage.setItem('clicker_power', Math.floor(power));
+          localStorage.setItem('clicker_auto', Math.floor(auto));
+        } catch (e) {}
+      }
+
+      function toInt(num) { return Math.max(0, Math.floor(num)); }
+
+      function updateUI() {
+        scoreEl.innerText = toInt(score);
+        shopScoreEl.innerText = toInt(score);
+        minesScoreEl.innerText = toInt(score);
+        powerEl.innerText = toInt(power);
+        autoEl.innerText = toInt(auto);
+
+        const nextPowerPrice = toInt(basePricePower * Math.pow(1.5, power));
+        const nextAutoPrice = toInt(basePriceAuto * Math.pow(1.5, auto));
+
+        pricePowerEl.innerText = nextPowerPrice;
+        priceAutoEl.innerText = nextAutoPrice;
+
+        const canBuyPower = score >= nextPowerPrice;
+        const canBuyAuto = score >= nextAutoPrice;
+
+        itemPowerEl.classList.toggle('disabled', !canBuyPower);
+        itemAutoEl.classList.toggle('disabled', !canBuyAuto);
+        itemPowerEl.onclick = canBuyPower ? () => buyUpgrade('power') : null;
+        itemAutoEl.onclick = canBuyAuto ? () => buyUpgrade('auto') : null;
+      }
+
+      function buyUpgrade(type) {
+        if (type === 'power') {
+          const cost = toInt(basePricePower * Math.pow(1.5, power));
+          if (score >= cost) { score -= cost; power++; save(); updateUI(); }
+        } else if (type === 'auto') {
+          const cost = toInt(basePriceAuto * Math.pow(1.5, auto));
+          if (score >= cost) { score -= cost; auto++; save(); updateUI(); }
+        }
+      }
+
+      // --- Переключение экранов ---
+      function switchScreen(screenName) {
+        document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+        
+        if (screenName === 'game') {
+          document.getElementById('main-screen').classList.add('active');
+          document.querySelectorAll('.nav-btn').classList.add('active');
+        } else if (screenName === 'shop') {
+          document.getElementById('shop-screen').classList.add('active');
+          document.querySelectorAll('.nav-btn').classList.add('active');
+        } else if (screenName === 'mines') {
+          document.getElementById('mines-screen').classList.add('active');
+          document.querySelectorAll('.nav-btn').classList.add('active');
+          updateMinesUI(); // Обновляем данные при входе
+        }
+      }
+
+      // --- ЛОГИКА МИН (САПЁР) ---
+
+      function validateBet() {
+        let val = parseInt(minesBetInput.value, 10);
+        if (isNaN(val) || val < 1) val = 1;
+        if (val > score) val = score;
+        minesBetInput.value = val;
+        currentBet = val;
+      }
+
+      function updateMinesUI() {
+        minesBetInput.value = Math.min(score, 10);
+        validateBet();
+        minesCountDisplay.innerText = totalMines;
+        minesStatus.innerText = "";
+        minesStatus.style.color = "white";
+        isMinesActive = false;
+        minesGrid.innerHTML = ""; // Очистить поле
+      }
+
+      // Слушатель слайдера
+      minesSlider.addEventListener('input', (e) => {
+        totalMines = parseInt(e.target.value, 10);
+        minesCountDisplay.innerText = totalMines;
+      });
+
+      function startMinesGame() {
+        currentBet = parseInt(minesBetInput.value, 10);
+        if (currentBet < 1) { alert("Ставка должна быть больше 0"); return; }
+        if (score < currentBet) { alert("Недостаточно монет!"); return; }
+        if (totalMines < 2 || totalMines > 24) { alert("Выберите количество мин от 2 до 24"); return; }
+
+        // Списываем ставку
+        score -= currentBet;
+        save();
+        updateUI();
+
+        isMinesActive = true;
+        minesStatus.innerText = "Протокол запущен. Обезвреживайте ячейки.";
+        minesStatus.style.color = "var(--hint-color)";
+
+        // Генерируем поле 5x5 (25 ячеек)
+        minesBoard = [];
+        const safeCellsCount = 25 - totalMines;
+        
+        // Создаем массив: totalMines штук true (мина), остальные false (пусто)
+        for (let i = 0; i < totalMines; i++) minesBoard.push(true);
+        for (let i = 0; i < safeCellsCount; i++) minesBoard.push(false);
+        
+        // Перемешиваем (алгоритм Фишера-Йетса)
+        for (let i = minesBoard.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [minesBoard[i], minesBoard[j]] = [minesBoard[j], minesBoard[i]];
+        }
+
+        revealedCells = 0;
+        // Расчет награды: чем больше мин, тем меньше награда за ячейку, но выше риск.
+        // Формула: Ставка / (25 - мин). Если мин много, ячеек мало, награда за каждую выше.
+        cellsPerWin = Math.max(1, Math.floor(currentBet / safeCellsCount));
+
+        renderMinesGrid();
+      }
+
+      function renderMinesGrid() {
+        minesGrid.innerHTML = "";
+        for (let i = 0; i < 25; i++) {
+          const cell = document.createElement('div');
+          cell.className = 'mine-cell';
+          cell.onclick = () => handleCellClick(i);
+          minesGrid.appendChild(cell);
+        }
+      }
+
+      function handleCellClick(index) {
+        if (!isMinesActive) return;
+
+        const cell = minesGrid.children[index];
+        if (cell.classList.contains('revealed')) return;
+
+        const isMine = minesBoard[index];
+
+        if (isMine) {
+          // ПОПАЛИ НА МИНУ
+          cell.classList.add('mine', 'revealed');
+          cell.innerHTML = "💥";
+          minesGrid.classList.add('explosion-anim');
+          setTimeout(() => minesGrid.classList.remove('explosion-anim'), 500);
+          
+          minesStatus.innerText = "Угроза обнаружена! Протокол провален. Монеты потеряны.";
+          minesStatus.style.color = "var(--danger-color)";
+          isMinesActive = false;
+          
+          // Показываем все мины
+          for (let i = 0; i < 25; i++) {
+            const c = minesGrid.children[i];
+            if (minesBoard[i]) {
+              c.classList.add('mine', 'revealed');
+              c.innerHTML = "💥";
+            }
+          }
+        } else {
+          // БЕЗОПАСНАЯ ЯЧЕЙКА
+          cell.classList.add('safe', 'revealed');
+          cell.innerHTML = "✅";
+          revealedCells++;
+          
+          const winAmount = cellsPerWin;
+          score += winAmount;
+          save();
+          updateUI();
+          
+          // Анимация выигрыша рядом с полем
+          const gridRect = minesGrid.getBoundingClientRect();
+          const el = document.createElement('div');
+          el.className = 'floating-number';
+          el.innerText = '+' + winAmount;
+          el.style.left = (gridRect.left + gridRect.width / 2 - 20) + 'px';
+          el.style.top = (gridRect.top - 40) + 
